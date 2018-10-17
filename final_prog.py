@@ -1,14 +1,17 @@
 import my_indexer_combined
-import search_engine
+import search_engine_new
 import os
 import webbrowser
 
 class Result(object):
     """
-    Contains two methods:
+    Contains three methods:
     final_prog_from_files - if we want to create everything from scratch
                             we begin with indexing files and creating a db.
     final_prog_from_db - if we have a pre-created db and start to work with it.
+    final_prog_with_limit_offset - for showing only a portion from documents
+                            and a portion of citations for each documen on
+                            the server.
     """
     def final_prog_from_files(self,input_list,query,window_length):
         """
@@ -81,7 +84,7 @@ class Result(object):
         windows_dict = engine.get_context_for_words(query, int(window_length))
         result = engine.make_windows_sentences(windows_dict)
 
-        # here we create an html output in the 'output' VARIABLE
+        # here we create an html output in the 'output' variable
         
         final_dict = engine.make_dict_with_citations(result)
         output = []
@@ -103,17 +106,44 @@ class Result(object):
         
         return(''.join(output))
 
-# THIS PART IS TO CHECK HOW THEY WORK
-"""
-print("Введите через пробел имена файлов, в которых хотите искать:")
-input_str = input().strip()
-input_list = input_str.split()
-print("Введите запрос:")
-query = input()
-print("Введите длину окна:")
-length = input()
+    def final_prog_with_limit_offset(self,engine,query,window_length,doc_limit,doc_offset,lim_off_list):
+        """
+        Returns an html output given:
+        1) an engine instance (so we don't create it for each new query),
+        2) a query as a string,
+        3) a window length,
+        4) how many documents to show on the page,
+        5) starting from which document (here we count from 0), and
+        6) a list of pairs (limit,offset), where each pair contains parameters how many citations and
+           starting from which one to show on the page - for each corresponding document.
+        """
+        # here we don't need the 'lim_off_list' argument
+        windows_dict = engine.get_context_for_words(query,int(window_length),doc_limit,doc_offset)
+        result = engine.make_windows_sentences(windows_dict,lim_off_list)
 
-res1 = Result().final_prog_from_files(input_list,query,length)
-res2 = Result().final_prog_from_db("test_db",query,length)
-print(res1==res2)
-"""
+        # here we create an html output in the 'output' variable
+        final_dict = engine.make_dict_with_citations(result)
+        output = []
+
+        if final_dict == {}:
+            output.append("Ooops, no more files to show! ") 
+            return(''.join(output), 0, [])
+        else:
+            # the ordered list of files begins
+            output.append("<ol>")
+            
+            numb_of_returned_citations_per_each_doc = []    
+            for key in final_dict:
+                numb_of_returned_citations_per_each_doc.append(len(final_dict[key]))  ### NEW
+                output.append("<li><p><b>%s</b></p><ul>" % key)
+                if final_dict[key] != []:
+                    for string in final_dict[key]:
+                        # each string with the answer is an item in an unordered list
+                        output.append("<li>"+string+"</li>")
+                    output.append("</ul></li>")
+                else:
+                    output.append("Ooops, no more citationis in this document! </ul></li>")
+            # in the very end we close the ordered list        
+            output.append("</ol>")
+        
+        return(''.join(output), len(final_dict), numb_of_returned_citations_per_each_doc)
