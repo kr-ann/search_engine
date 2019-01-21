@@ -1,5 +1,7 @@
 """
-Given a word, we find its stems, template, and template's flections.
+Given a word, we find its stems, template, and template's flections. 
+This is an intermediate modeule, it is not used anywhere later.
+Some ideas from here are used in the "creating_databases" module.
 """
 
 import mwclient as mw
