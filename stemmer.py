@@ -10,7 +10,7 @@ The best stemmer can also return lemmas, not stems.
 import shelve
 
 class Final_Stemmer(object):
-    def __init__(self, stems_db, flections_db, path="C:\\Users\\Admin.Ann-s\\Python\\Python36-32\\_Программирование III\\"):
+    def __init__(self, stems_db, flections_db, path="C:\\Users\\boss\\Documents\\Python Scripts\\Search\\"):
         self.stems_db = shelve.open(path+stems_db)
         self.flections_db = shelve.open(path+flections_db)
 
@@ -64,6 +64,11 @@ def gen_simplest_stemmer(word, max_flexion_len):
 class Flections_Stemmer(object):
     """
     Class for the stemmer that takes a list of flexions in the language.
+    
+    For the words that have more than 3 characters it tries to find a flection (i.e. n last characters)
+    that would be present in the list of flections and return the remaining part of the word without
+    the flection.
+    
     """
     
     def __init__(self, flexions):
@@ -75,11 +80,15 @@ class Flections_Stemmer(object):
             raise ValueError("The input must be a non-emty string. ")
         
         length = len(word)
-        if length > self.max_flexion_len: # if the word is not too short
-            for i in range(self.max_flexion_len+1):
-                if i == 0:
-                    yield word
-                else:
+        # we tried to set max_flection_length as a restriction for the length, but it equaled 8 and therefore was no good
+        if length > 3: # if the word is not too short
+            # если сделать range с нуля, то стеммер всегда будет что-то выдавать (слово в том же виде, что и на входе)
+            # а нам это не нужно - для этого есть последний стеммер
+            if length > self.max_flexion_len:
+                upper_bound = self.max_flexion_len + 1 
+            else:
+                upper_bound = length
+            for i in range(1, upper_bound):
                     flexion = word[length-i:]
                     if flexion in self.flexions:
                         yield word[:-i]
@@ -90,7 +99,10 @@ class Flections_Stemmer(object):
 class BD_Stemmer(object):
     """
     Class for the stemmer that takes two databases, with stems and flection, as an input.
-    It can also return lemmas (if the lemmatisation parameter = True).
+    
+    It tries to split a word into a stem and a flection so that both stem would be in the stems_db
+    and flections - in the flections_db. Returns either the found stem or its lemma from the bd
+    (if the lemmatisation parameter = True).
     """
 
     def __init__(self, opened_stems_db, opened_flections_db):

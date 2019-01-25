@@ -16,7 +16,7 @@ import threading
 class Threads_for_stems_dict(threading.Thread):
     def __init__(self, online_dict, words_list, set_with_redirections):
         threading.Thread.__init__(self)
-        self.online_dicct = online_dict
+        self.online_dict = online_dict
         self.words_list = words_list
         self.set_with_redirections = set_with_redirections
 
@@ -195,9 +195,7 @@ def add_triples(site, text, template, stems_list):
             stem = stem.replace('\u0301','').replace('\u0300','').lower().strip() # delete stress symbols
             if stem != '': # if it is empty we do not include into our db
                 stems_list.append((stem, template, variable_name))
-            # КАКИЕ-ТО ОСНОВЫ ВСЁ РАВНО ПОЛУЧАЮТСЯ НЕПРАВИЛЬНЫМИ, типа {{pagename}}, |основа1=}}, }}
-            # можно проверять, содержат ли что-то кроме букв и "-", и если да, заменять replace на 
-            # пустую строку, перед этим записывая неправильные в файл
+                
         except ValueError: # when there are no more words 'основа' in the rest of the file
             break
         
@@ -257,8 +255,6 @@ def flections(site, template):
                 flection = flection.replace('\u0301','').replace('\u0301','').lower() # delete stress symbols and to the lower case
                 flection = flection.replace("основа","") # otherwise there are flections like "=основа-22"
 
-                # HERE WE CAN DELETE ALL FLECTIONS THAT CONTAIN NOT ONLY RUSSIAN CHARS
-                # ХОТЯ И ТАК НОРМАЛЬНО, ТАМ ЕСТЬ ЛИШНИЕ
                 return_dict[variable_name].add(flection)
 
     return(return_dict)
@@ -344,7 +340,7 @@ def divide_list(whole_list,num_of_groups):
 
 if __name__ == "__main__":
     PATH = "C:\\Users\\Admin.Ann-s\\Python\\Python36-32\\_Программирование III\\"
-    #create_stems_db("stems_db", PATH+"all_words.txt")
-    #print("Done with the first db")
-    create_flections_db("flections_db", PATH+"all_templates.txt")
-    print("Done with the second db")
+    create_stems_db("new_stems_db", PATH+"all_words.txt")
+    print("Done with the first db")
+    #create_flections_db("flections_db", PATH+"all_templates.txt")
+    #print("Done with the second db")
